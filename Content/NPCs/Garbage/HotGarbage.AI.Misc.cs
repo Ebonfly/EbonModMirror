@@ -1,6 +1,7 @@
 using System;
 using EbonianMod.Common.UI.Titledrop;
 using EbonianMod.Content.Dusts;
+using EbonianMod.Content.NPCs.Corruption;
 using EbonianMod.Content.NPCs.Garbage.Projectiles;
 using EbonianMod.Content.Projectiles.VFXProjectiles;
 using EbonianMod.Core.Systems.Cinematic;
@@ -160,17 +161,21 @@ public partial class HotGarbage : ModNPC
                     }
                 }
             }
-            if (AITimer2 >= 22 && AITimer2 < 40 && AITimer2 % 2 == 0)
+            if (AITimer2 >= 22 && AITimer2 < 40)
             {
-                for (int i = -1; i < 1; i++)
-                {
-                    Projectile a = MPUtils.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + new Vector2(Main.rand.NextFloat(2, 4) * i, NPC.height / 2 - 8), new Vector2(-NPC.direction * Main.rand.NextFloat(1, 3), Main.rand.NextFloat(-5, -1)), ProjectileType<GarbageFlame>(), 15, 0);
-                    if (a is not null)
+                if (NPC.Grounded())
+                    MPUtils.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + new Vector2(Main.rand.NextFloat(-4, 4), NPC.height / 2f + 6), new Vector2(-NPC.direction * Main.rand.NextFloat(1, 3), Main.rand.NextFloat(-5, -1)), ProjectileType<GarbageDashFlames>(), 15, 0, ai2: (1f - AITimer2 / 40f) * Main.rand.NextFloat(0.2f, 0.4f));
+                
+                if (AITimer2 % 2 == 0)
+                    for (int i = -1; i < 1; i++)
                     {
-                        a.timeLeft = 170;
-                        a.SyncProjectile();
+                        Projectile a = MPUtils.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + new Vector2(Main.rand.NextFloat(2, 4) * i, NPC.height / 2 - 8), new Vector2(-NPC.direction * Main.rand.NextFloat(1, 3), Main.rand.NextFloat(-5, -1)), ProjectileType<GarbageFlame>(), 15, 0);
+                        if (a is not null)
+                        {
+                            a.timeLeft = 170;
+                            a.SyncProjectile();
+                        }
                     }
-                }
             }
             bool nukeExist = false;
             foreach (Projectile proj in Main.ActiveProjectiles)
@@ -246,7 +251,7 @@ public partial class HotGarbage : ModNPC
         if (AITimer > 30)
             AnimationStyle = AnimationStyles.Intro;
         
-        if (!NPC.collideY && AITimer2 < 150)
+        if (AITimer <= 0 && !NPC.collideY && AITimer2 < 150)
         {
             if (AITimer2 < 10)
                 FacePlayer();
@@ -263,15 +268,21 @@ public partial class HotGarbage : ModNPC
             NPC.netUpdate = true;
             NPC.position.Y -= NPC.velocity.Y;
             foreach (Player p in Main.ActivePlayers)
-                if (!p.dead && p.Distance(NPC.Center) < 3000)
+                if (!p.dead && p.Distance(NPC.Center) < 300)
                 {
                     player.JumpMovement();
                     player.velocity.Y = -10;
                 }
             TitledropSystem.SetStyle(HotGarbageTitledrop.Instance);
-            MPUtils.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + NPC.height * 0.5f * Vector2.UnitY, new Vector2(0, 0), ProjectileType<GarbageImpact>(), 0, 0, 0, 0);
+            MPUtils.NewProjectile(NPC.GetSource_FromThis(), NPC.Bottom, new Vector2(0, 0), ProjectileType<GarbageImpact>(), 0, 0, 0, 0);
             CameraSystem.ChangeCameraPos(NPC.Center - new Vector2(0, 50), 150, null, 1.5f, InOutQuart);
+            
+            CameraSystem.ChangeZoom(80, new ZoomInfo(1.2f, 1.2f, InOutCirc, InOutCirc));
         }
+        if (AITimer is > 1 and < 5)
+            for (int i = -1; i < 2; i += 2)
+            MPUtils.NewProjectile(NPC.GetSource_FromThis(), NPC.Bottom + new Vector2(70 * AITimer * i, 0), new Vector2(0, 0), ProjectileType<GarbageImpact>(), 0, 0, 0, 0);
+        
         if (AITimer == 50)
         {
             SoundEngine.PlaySound(Sounds.garbageAwaken);

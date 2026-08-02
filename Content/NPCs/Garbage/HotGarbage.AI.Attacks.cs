@@ -92,7 +92,7 @@ public partial class HotGarbage : ModNPC
             }
 	
             Vector2 velocity = new Vector2(NPC.direction * MathHelper.Lerp(0.5f, 1, AITimer / 75f), 0).RotatedBy(NPC.rotation);
-			NPC.velocity = velocity * (AITimer / 75f) * 25;
+			NPC.velocity = velocity * (AITimer / 75f) * 26;
             if (AITimer >= 75)
             {
 	            NPC.noTileCollide = false;
@@ -239,6 +239,7 @@ public partial class HotGarbage : ModNPC
 		
         if (AIState == State.SpewFire)
         {
+            FacePlayer();
             NPC.velocity.X = Lerp(NPC.velocity.X, Helper.FromAToB(NPC.Center, player.Center).X * 2.5f, 0.15f);
             if (AITimer % 6 == 0)
             {
@@ -620,9 +621,9 @@ public partial class HotGarbage : ModNPC
         if (AITimer == 80)
         {
             SoundEngine.PlaySound(Sounds.eruption.WithVolumeScale(0.8f), NPC.Center);
-            SoundEngine.PlaySound(Sounds.garbageLaserFire.WithVolumeScale(1.35f), NPC.Center);
+            SoundEngine.PlaySound(Sounds.garbageLaserFire.WithVolumeScale(0.5f), NPC.Center);
             if (!Main.dedServ)
-                LaserSoundSlot = SoundEngine.PlaySound(Sounds.garbageLaser.WithVolumeScale(1.35f), NPC.Center);
+                LaserSoundSlot = SoundEngine.PlaySound(Sounds.garbageLaser.WithVolumeScale(0.8f), NPC.Center, _ => NPC.active);
             CameraSystem.ScreenShakeAmount = 5;
             AITimer2 = 1;
             MPUtils.NewProjectile(NPC.InheritSource(NPC), NPC.Center - new Vector2(-6 * NPC.direction, NPC.height * 0.75f), -Vector2.UnitY, ProjectileType<HeatBlastVFX>(), 0, 0);
@@ -633,8 +634,10 @@ public partial class HotGarbage : ModNPC
             if (!Main.dedServ)
                 if (SoundEngine.TryGetActiveSound(LaserSoundSlot, out var sound))
                 {
-                    sound.Pitch += 0.3f;
-                    sound.Volume += 0.3f;
+                    if (sound.Pitch < 2f)
+                        sound.Pitch += 0.1f;
+                    if (sound.Volume < 2f)
+                        sound.Volume += 0.1f;
                 }
             CameraSystem.ScreenShakeAmount = 10;
             AITimer2 = 1.5f;
@@ -645,8 +648,10 @@ public partial class HotGarbage : ModNPC
             if (!Main.dedServ)
                 if (SoundEngine.TryGetActiveSound(LaserSoundSlot, out var sound))
                 {
-                    sound.Pitch += 0.4f;
-                    sound.Volume += 0.4f;
+                    if (sound.Pitch < 2f)
+                        sound.Pitch += 0.2f;
+                    if (sound.Volume < 2f)
+                        sound.Volume += 0.1f;
                 }
             CameraSystem.ScreenShakeAmount = 15;
             AITimer2 = 2.25f;
@@ -660,6 +665,13 @@ public partial class HotGarbage : ModNPC
         {
 	        NPC.rotation = Utils.AngleLerp(NPC.rotation, 0, 0.1f);
 	        thrusterFlareAlpha = MathHelper.Lerp(thrusterFlareAlpha, 0, 0.1f);
+            
+            if (!Main.dedServ)
+                if (SoundEngine.TryGetActiveSound(LaserSoundSlot, out var sound))
+                {
+                    sound.Volume = MathF.Max(sound.Volume - 0.1f, 0);
+                }
+            
         }
 
         if (AITimer >= 440)

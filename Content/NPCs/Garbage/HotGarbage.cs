@@ -18,7 +18,6 @@ public partial class HotGarbage : ModNPC
 
     public override void AI()
     {
-        NextAttack = State.ThrusterFlash;
         AmbientFX();
 
         TargetingLogic();

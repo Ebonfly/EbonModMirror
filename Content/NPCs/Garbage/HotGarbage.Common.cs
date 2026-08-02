@@ -98,7 +98,7 @@ public partial class HotGarbage : ModNPC
         NPC.noTileCollide = false;
         NPC.boss = true;
         NPC.netAlways = true;
-        Music = 0;
+        Music = MusicLoader.GetMusicSlot(Mod, "Assets/Music/ambience");
     }
 
     public override void ApplyDifficultyAndPlayerScaling(int numPlayers, float balance, float bossAdjustment)
@@ -196,8 +196,13 @@ public partial class HotGarbage : ModNPC
             AITimer = -75;
             AITimer2 = -110;
             NPC.velocity = Vector2.Zero;
-            NPC.frame.X = 160;
-            NPC.frame.Y = 0;
+            if (AnimationStyle == AnimationStyles.Open)
+                AnimationStyle = AnimationStyles.Close;
+            else 
+            {
+                NPC.frame.X = 160;
+                NPC.frame.Y = 0;
+            }
             NPC.life = 1;
             if (!Main.dedServ)
                 Music = 0;
